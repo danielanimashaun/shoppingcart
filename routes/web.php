@@ -13,3 +13,5 @@ Route::resource('orders', App\Http\Controllers\OrderController::class);
 Route::get('/product/displaygrid', [App\Http\Controllers\ProductController::class, 'displayGrid'])->name('products.displaygrid');
 
 Route::get('/add-to-cart/{id}', [App\Http\Controllers\ProductController::class, 'addToCart']);
+
+Route::get('/product/emptycart', [App\Http\Controllers\ProductController::class, 'emptycart'])->name('product.emptycart');

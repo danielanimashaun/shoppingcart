@@ -29,7 +29,7 @@
                 <div class="navbar-text"
                      id="shoppingcart"
                      style="font-size:14pt;margin-left:5px;margin-right:0px;color:white;">
-                    0
+                    {{ $totalItems }}
                 </div>
             </li>
 
@@ -82,6 +82,14 @@ function addToCart(id) {
             document.getElementById('shoppingcart').innerText = data.count;
         });
 }
+
+document.getElementById('emptycart').addEventListener('click', function () {
+    fetch('/product/emptycart')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('shoppingcart').innerText = 0;
+        });
+});
 </script>
 
 @endsection
