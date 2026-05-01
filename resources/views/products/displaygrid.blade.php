@@ -8,7 +8,7 @@
 
             <li class="nav-item">
                 <button id="checkOut"
-                        onclick="window.location.href=''"
+                        onclick="window.location.href='{{ route('orders.checkout') }}'"
                         type="button"
                         style="margin-right:5px;"
                         class="btn btn-primary navbar-btn center-block">

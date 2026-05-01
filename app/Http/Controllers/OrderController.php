@@ -9,10 +9,10 @@ use App\Http\Controllers\AppBaseController;
 use Illuminate\Http\Request;
 use Flash;
 use Response;
+use Session;
 
 class OrderController extends AppBaseController
 {
-    /** @var  OrderRepository */
     private $orderRepository;
 
     public function __construct(OrderRepository $orderRepo)
@@ -20,38 +20,57 @@ class OrderController extends AppBaseController
         $this->orderRepository = $orderRepo;
     }
 
-    /**
-     * Display a listing of the Order.
-     *
-     * @param Request $request
-     *
-     * @return Response
-     */
     public function index(Request $request)
     {
         $orders = $this->orderRepository->all();
 
-        return view('orders.index')
-            ->with('orders', $orders);
+        return view('orders.index')->with('orders', $orders);
     }
 
-    /**
-     * Show the form for creating a new Order.
-     *
-     * @return Response
-     */
+    public function checkout()
+    {
+        if (Session::has('cart')) {
+            $cart = Session::get('cart');
+            $lineitems = array();
+
+            foreach ($cart as $productid => $qty) {
+                $lineitem['product'] = \App\Models\Product::find($productid);
+                $lineitem['qty'] = $qty;
+                $lineitems[] = $lineitem;
+            }
+
+            return view('orders.checkout')->with('lineitems', $lineitems);
+        } else {
+            Flash::error('There are no items in your cart');
+
+            return redirect(route('products.displaygrid'));
+        }
+    }
+
+    public function placeorder(Request $request)
+    {
+        $productids = $request->productid;
+        $quantities = $request->quantity;
+
+        for ($i = 0; $i < sizeof($productids); $i++) {
+            $order = new \App\Models\Order();
+            $order->product_id = $productids[$i];
+            $order->quantity = $quantities[$i];
+            $order->save();
+        }
+
+        Session::forget('cart');
+
+        Flash::success('Your Order has Been Placed');
+
+        return redirect(route('products.displaygrid'));
+    }
+
     public function create()
     {
         return view('orders.create');
     }
 
-    /**
-     * Store a newly created Order in storage.
-     *
-     * @param CreateOrderRequest $request
-     *
-     * @return Response
-     */
     public function store(CreateOrderRequest $request)
     {
         $input = $request->all();
@@ -63,13 +82,6 @@ class OrderController extends AppBaseController
         return redirect(route('orders.index'));
     }
 
-    /**
-     * Display the specified Order.
-     *
-     * @param int $id
-     *
-     * @return Response
-     */
     public function show($id)
     {
         $order = $this->orderRepository->find($id);
@@ -83,13 +95,6 @@ class OrderController extends AppBaseController
         return view('orders.show')->with('order', $order);
     }
 
-    /**
-     * Show the form for editing the specified Order.
-     *
-     * @param int $id
-     *
-     * @return Response
-     */
     public function edit($id)
     {
         $order = $this->orderRepository->find($id);
@@ -103,14 +108,6 @@ class OrderController extends AppBaseController
         return view('orders.edit')->with('order', $order);
     }
 
-    /**
-     * Update the specified Order in storage.
-     *
-     * @param int $id
-     * @param UpdateOrderRequest $request
-     *
-     * @return Response
-     */
     public function update($id, UpdateOrderRequest $request)
     {
         $order = $this->orderRepository->find($id);
@@ -128,15 +125,6 @@ class OrderController extends AppBaseController
         return redirect(route('orders.index'));
     }
 
-    /**
-     * Remove the specified Order from storage.
-     *
-     * @param int $id
-     *
-     * @throws \Exception
-     *
-     * @return Response
-     */
     public function destroy($id)
     {
         $order = $this->orderRepository->find($id);
